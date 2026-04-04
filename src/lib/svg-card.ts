@@ -13,6 +13,54 @@ function escapeXml(str: string): string {
     .replace(/'/g, "&apos;");
 }
 
+function estimateTextWidth(
+  text: string,
+  fontSize: number,
+  bold = false,
+): number {
+  let total = 0;
+  for (const char of text) {
+    if ("iIl1|!.,;:'\"".includes(char)) total += 0.3;
+    else if ("fjrt()[]".includes(char)) total += 0.4;
+    else if (char === " ") total += 0.27;
+    else if ("mw".includes(char)) total += 0.82;
+    else if ("MW@".includes(char)) total += 0.9;
+    else if (char >= "A" && char <= "Z") total += 0.65;
+    else total += 0.52;
+  }
+  return total * fontSize * (bold ? 1.05 : 1);
+}
+
+function scrollingText(
+  id: string,
+  text: string,
+  x: number,
+  baselineY: number,
+  maxW: number,
+  fontSize: number,
+  fill: string,
+  opts: { bold?: boolean; opacity?: number } = {},
+): string {
+  const w = estimateTextWidth(text, fontSize, opts.bold);
+  const fw = opts.bold ? ` font-weight="700"` : "";
+  const op = opts.opacity != null ? ` opacity="${opts.opacity}"` : "";
+  const font = `font-family="'Segoe UI', Ubuntu, sans-serif" font-size="${fontSize}"`;
+
+  if (w <= maxW) {
+    return `<text x="${x}" y="${baselineY}" ${font}${fw} fill="${fill}"${op}>${text}</text>`;
+  }
+
+  const gap = 80;
+  const loopDist = w + gap;
+  const dur = loopDist / 25;
+  const clipY = baselineY - fontSize;
+  const clipH = fontSize + 6;
+  return `<clipPath id="${id}-clip"><rect x="${x}" y="${clipY}" width="${maxW}" height="${clipH}"/></clipPath>
+  <g clip-path="url(#${id}-clip)">
+    <g><text x="${x}" y="${baselineY}" ${font}${fw} fill="${fill}"${op}>${text}</text><text x="${x + w + gap}" y="${baselineY}" ${font}${fw} fill="${fill}"${op}>${text}</text><animateTransform attributeName="transform" type="translate" from="0,0" to="${-loopDist},0" dur="${dur}s" repeatCount="indefinite"/></g>
+  </g>`;
+}
+
 const SPOTIFY_ICON = `<path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.42 1.56-.299.421-1.02.599-1.559.3z" fill="#1DB954"/>`;
 
 export function buildCurrentlyPlayingSvg(
@@ -44,14 +92,15 @@ export function buildCurrentlyPlayingSvg(
 </svg>`;
   }
 
-  const trackName = escapeXml(truncate(track.trackName, 34));
-  const artistName = escapeXml(truncate(track.artistName, 40));
-  const albumName = escapeXml(truncate(track.albumName, 40));
+  const trackName = escapeXml(track.trackName);
+  const artistName = escapeXml(track.artistName);
+  const albumName = escapeXml(track.albumName);
 
   const artSize = 80;
   const artX = 18;
   const artY = (height - artSize) / 2;
   const textX = artX + artSize + 16;
+  const maxTextWidth = width - textX - 18;
 
   const albumArtImage = albumArtBase64
     ? `<clipPath id="art-clip"><rect x="${artX}" y="${artY}" width="${artSize}" height="${artSize}" rx="8"/></clipPath>
@@ -74,8 +123,8 @@ export function buildCurrentlyPlayingSvg(
   <rect x="1" y="1" width="${width - 2}" height="${height - 2}" rx="11" fill="${cardBg}" stroke="${barBg}" stroke-width="1"/>
   ${albumArtImage}
   ${header}
-  <text x="${textX}" y="52" font-family="'Segoe UI', Ubuntu, sans-serif" font-size="15" font-weight="700" fill="${textPrimary}">${trackName}</text>
-  <text x="${textX}" y="72" font-family="'Segoe UI', Ubuntu, sans-serif" font-size="12" fill="${textMuted}">${artistName}</text>
-  <text x="${textX}" y="90" font-family="'Segoe UI', Ubuntu, sans-serif" font-size="11" fill="${textMuted}" opacity="0.7">${albumName}</text>
+  ${scrollingText("track", trackName, textX, 52, maxTextWidth, 15, textPrimary, { bold: true })}
+  ${scrollingText("artist", artistName, textX, 72, maxTextWidth, 12, textMuted)}
+  ${scrollingText("album", albumName, textX, 90, maxTextWidth, 11, textMuted, { opacity: 0.7 })}
 </svg>`;
 }
