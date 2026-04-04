@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Copy, Check, CheckCircle, AlertCircle } from "lucide-react";
 
@@ -51,6 +51,14 @@ function CopyButton({ text }: { text: string }) {
 }
 
 export default function ConnectPage() {
+  return (
+    <Suspense>
+      <ConnectContent />
+    </Suspense>
+  );
+}
+
+function ConnectContent() {
   const searchParams = useSearchParams();
   const success = searchParams.get("success") === "true";
   const publicId = searchParams.get("publicId");
@@ -177,3 +185,4 @@ export default function ConnectPage() {
     </div>
   );
 }
+
