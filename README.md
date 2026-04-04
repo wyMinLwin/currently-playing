@@ -81,6 +81,10 @@ Add this to your README (replace `YOUR_PUBLIC_ID` with the ID from your dashboar
 
 The card updates automatically — it shows what you're currently listening to on Spotify with a 15-second cache.
 
+Example:  
+![Currently Playing](https://wyml-currently-playing.vercel.app/api/spotify/currently-playing/33dP82pPZ87A)
+
+
 ## Tech Stack
 
 - [Next.js](https://nextjs.org) 16
