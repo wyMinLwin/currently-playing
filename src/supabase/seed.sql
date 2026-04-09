@@ -42,3 +42,12 @@ create index idx_sessions_user_id on sessions(user_id);
 alter table users enable row level security;
 alter table credentials enable row level security;
 alter table sessions enable row level security;
+
+-- Ping table (prevents Supabase free-tier auto-pause)
+create table ping (
+  id integer primary key default 1,
+  pinged_at timestamptz not null default now(),
+  constraint single_row check (id = 1)
+);
+
+insert into ping (id, pinged_at) values (1, now());
