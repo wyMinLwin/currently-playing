@@ -32,6 +32,7 @@ SPOTIFY_REDIRECT_URI=https://your-ngrok-url.ngrok-free.dev/api/spotify/callback
 NEXT_PUBLIC_BASE_URL=https://your-ngrok-url.ngrok-free.dev
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
+CRON_SECRET=
 ```
 
 > **Local development:** Spotify OAuth requires a publicly accessible callback URL. Use [ngrok](https://ngrok.com) to expose your local server:
@@ -84,6 +85,56 @@ The card updates automatically — it shows what you're currently listening to o
 Example:  
 ![Currently Playing](https://wyml-currently-playing.vercel.app/api/spotify/currently-playing/33dP82pPZ87A)
 
+
+## Database Keep-Alive (Cron Ping)
+
+Supabase free-tier databases auto-pause after 7 days of inactivity. To prevent this, a daily cron job pings the database.
+
+### How it works
+
+- A `ping` table stores a single row with a `pinged_at` timestamp
+- Vercel Cron calls `GET /api/cron/ping` on a schedule (daily by default)
+- The endpoint upserts the ping row, keeping the database active
+- The endpoint is protected by `CRON_SECRET` so only Vercel can call it
+
+### Setup
+
+1. Generate a secret:
+   ```bash
+   openssl rand -hex 32
+   ```
+2. Add `CRON_SECRET` to your Vercel environment variables with the generated value
+3. Create the `ping` table by running this in Supabase SQL Editor:
+   ```sql
+   create table ping (
+     id integer primary key default 1,
+     pinged_at timestamptz not null default now(),
+     constraint single_row check (id = 1)
+   );
+   insert into ping (id, pinged_at) values (1, now());
+   ```
+4. After deploying, verify the cron job appears in Vercel dashboard under **Cron Jobs**
+
+### Changing the schedule
+
+Edit the `schedule` in `vercel.json`:
+
+```json
+{
+  "crons": [
+    {
+      "path": "/api/cron/ping",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
+```
+
+| Schedule | Meaning |
+|---|---|
+| `0 0 * * *` | Every day at midnight UTC (default) |
+| `0 */12 * * *` | Every 12 hours |
+| `0 0 */3 * *` | Every 3 days |
 
 ## Tech Stack
 

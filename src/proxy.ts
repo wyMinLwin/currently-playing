@@ -8,6 +8,7 @@ const PUBLIC_PATHS = [
   "/api/spotify/auth",
   "/api/spotify/callback",
   "/api/spotify/currently-playing",
+  "/api/cron",
 ];
 
 function isPublicPath(pathname: string) {
