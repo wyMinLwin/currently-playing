@@ -50,4 +50,6 @@ create table ping (
   constraint single_row check (id = 1)
 );
 
+alter table ping enable row level security;
+
 insert into ping (id, pinged_at) values (1, now());
