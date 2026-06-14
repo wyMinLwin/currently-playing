@@ -85,6 +85,30 @@ The card updates automatically — it shows what you're currently listening to o
 Example:  
 ![Currently Playing](https://wyml-currently-playing.vercel.app/api/spotify/currently-playing/33dP82pPZ87A)
 
+### Themes
+
+The card supports color themes via a `?theme=` query param. Append it to the embed URL:
+
+```markdown
+![Currently Playing](https://your-app.vercel.app/api/spotify/currently-playing/YOUR_PUBLIC_ID?theme=onedark)
+```
+
+| Theme | Description |
+|---|---|
+| `default` | Warm gold/cream (used when no theme is given) |
+| `onedark` | Atom One Dark — slate bg, blue accent |
+| `dracula` | Dracula — dark purple-grey, purple accent |
+| `nord` | Nord — cool blue-grey, frost accent |
+| `gruvbox` | Gruvbox — retro brown, yellow accent |
+
+Unknown or missing theme names fall back to `default`, so the embed never breaks.
+
+On your dashboard you can pick a theme from the **Theme** chips — the live preview and the
+copyable snippet update instantly, and your choice is remembered (saved to `localStorage`).
+
+Themes are defined in [`src/lib/svg-themes.ts`](src/lib/svg-themes.ts); add a palette to the
+`THEMES` registry to create a new one.
+
 
 ## Database Keep-Alive (Cron Ping)
 

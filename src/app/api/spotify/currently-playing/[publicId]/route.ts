@@ -7,6 +7,7 @@ import {
 } from "@/lib/spotify";
 import { getCached, setCache } from "@/lib/cache";
 import { buildCurrentlyPlayingSvg } from "@/lib/svg-card";
+import { resolveTheme } from "@/lib/svg-themes";
 
 const CACHE_TTL_MS = 15_000;
 
@@ -35,11 +36,14 @@ function svgResponse(svg: string) {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ publicId: string }> },
 ) {
   const { publicId } = await params;
-  const cacheKey = `currently-playing:${publicId}`;
+  const { name: themeName, theme } = resolveTheme(
+    request.nextUrl.searchParams.get("theme"),
+  );
+  const cacheKey = `currently-playing:${publicId}:${themeName}`;
 
   // Check cache
   const cached = getCached<CachedCard>(cacheKey);
@@ -55,7 +59,7 @@ export async function GET(
     .single();
 
   if (!user || !user.credentials) {
-    const svg = buildCurrentlyPlayingSvg("Unknown", null);
+    const svg = buildCurrentlyPlayingSvg("Unknown", null, theme);
     return svgResponse(svg);
   }
 
@@ -67,7 +71,7 @@ export async function GET(
     : user.credentials;
 
   if (!cred) {
-    const svg = buildCurrentlyPlayingSvg(displayName, null);
+    const svg = buildCurrentlyPlayingSvg(displayName, null, theme);
     return svgResponse(svg);
   }
 
@@ -95,7 +99,7 @@ export async function GET(
         .eq("user_id", user.id);
     } catch {
       // Token refresh failed — user may have revoked access
-      const svg = buildCurrentlyPlayingSvg(displayName, null);
+      const svg = buildCurrentlyPlayingSvg(displayName, null, theme);
       return svgResponse(svg);
     }
   }
@@ -113,7 +117,7 @@ export async function GET(
     albumArtBase64 = await fetchAlbumArtBase64(track.albumArtUrl);
   }
 
-  const svg = buildCurrentlyPlayingSvg(displayName, track, albumArtBase64);
+  const svg = buildCurrentlyPlayingSvg(displayName, track, theme, albumArtBase64);
 
   setCache(cacheKey, { svg }, CACHE_TTL_MS);
 
