@@ -1,4 +1,5 @@
 import type { TrackData } from "./spotify";
+import type { CardTheme } from "./svg-themes";
 
 function truncate(str: string, maxLen: number): string {
   return str.length > maxLen ? str.slice(0, maxLen - 1) + "…" : str;
@@ -66,16 +67,12 @@ const SPOTIFY_ICON = `<path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S
 export function buildCurrentlyPlayingSvg(
   displayName: string,
   track: TrackData | null,
+  theme: CardTheme,
   albumArtBase64?: string,
 ): string {
   const width = 480;
   const height = 120;
-  const bg = "#1a1815";
-  const cardBg = "#232019";
-  const textPrimary = "#ede9df";
-  const textMuted = "#8a8278";
-  const accent = "#c49a5a";
-  const barBg = "#2e2a23";
+  const { bg, cardBg, textPrimary, textMuted, accent, barBg } = theme;
 
   const safeName = escapeXml(truncate(displayName, 28));
 

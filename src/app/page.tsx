@@ -1,8 +1,7 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getSessionUser } from "@/lib/auth";
-import { EmbedSection } from "./embed-section";
+import { CardCustomizer } from "./card-customizer";
 import { LogoutButton } from "./logout-button";
 
 function SpotifyIcon({ className }: { className?: string }) {
@@ -57,23 +56,8 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* Currently Playing Card Preview */}
-        <Card className="w-full bg-card/60 backdrop-blur-xl ring-white/[0.06] shadow-2xl shadow-black/20 py-0 gap-0">
-          <CardContent className="p-4 sm:p-5 space-y-3">
-            <p className="text-[11px] uppercase tracking-widest text-muted-foreground/50 font-medium">
-              Live Preview
-            </p>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={cardUrl}
-              alt="Currently Playing"
-              className="w-full rounded-lg"
-            />
-          </CardContent>
-        </Card>
-
-        {/* Embed code */}
-        <EmbedSection cardUrl={cardUrl} />
+        {/* Live preview + theme picker + embed code */}
+        <CardCustomizer cardUrl={cardUrl} />
 
         {/* Actions */}
         <div className="flex items-center gap-4">
